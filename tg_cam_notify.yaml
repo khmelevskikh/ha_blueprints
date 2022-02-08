@@ -1,0 +1,54 @@
+blueprint:
+  name: Telegram Camera template 
+  description: Telegram command automation.
+  domain: automation
+  source_url: https://github.com/khmelevskikh/core/new/dev/homeassistant/components/automation/blueprints/create_tg_command.yaml
+  input:
+    tg_command:
+      name: Telegram Command
+      selector:
+        text:
+          multiline: false
+    notify_filepath:
+      name: Path to the image
+      selector:
+        text:
+          multiline: false
+    notify_channel:
+      name: Notification service
+      selector:
+        text:
+          multiline: false
+    notify_device:
+      name: Camera
+      selector:
+        entity:
+          domain: camera
+
+trigger:
+  - platform: event
+    event_type: telegram_command
+    event_data:
+      command: !input tg_command
+
+condition: []
+
+action:
+  - service: camera.snapshot
+    data:
+      filename: !input notify_filepath
+    target:
+      entity_id: !input notify_device
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 2
+      milliseconds: 0
+  - service: !input notify_channel
+    data:
+      title: Photo
+      message: Photo
+      data:
+        photo:
+        - file: !input notify_filepath
+          caption: Captured at {{ states("sensor.date_time")  }}
